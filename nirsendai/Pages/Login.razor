@@ -1,0 +1,90 @@
+﻿@page "/login"
+@inject NavigationManager NavigationManager
+
+<head>
+	<title>Login V1</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" type="image/png" href="/images/icons/favicon.ico"/>
+	<link rel="stylesheet" type="text/css" href="/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+
+	<link rel="stylesheet" type="text/css" href="/css/main.css">
+</head>
+
+	<div>
+		<div class="container-login100">
+				<form class="login100-form">
+					<span class="login100-form-title">
+						Авторизация
+					</span> 
+
+					<div class="wrap-input100">
+						<input class="input100" type="text" @bind="Username">
+						<span class="focus-input100"></span>
+						<span class="symbol-input100">
+							<i class="fa fa-envelope" aria-hidden="true"></i>
+						</span>
+					</div>
+					<div class="wrap-input100">
+						<input class="input100" type="password" @bind="Password">
+						<span class="focus-input100"></span>
+						<span class="symbol-input100">
+							<i class="fa fa-lock" aria-hidden="true"></i>
+						</span>
+					</div>
+					<div>
+						<button type="button" @onclick="Log" class="login100-form-btn">
+							Логин
+						</button>
+					</div>
+					<div class="text-center p-t-136">
+						<a class="txt2" href="#">
+							Регистрация
+							<i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
+						</a>
+					</div>
+				</form>
+		</div>
+	</div>
+	
+	
+
+	
+
+
+@code {
+
+	private string Username { get; set; }
+	private string Password { get; set; }
+	private void Log()
+	{
+		using (var db = new Models.NirsendaiContext())
+		{
+			try
+			{
+				var login = db.Users.Where(x => x.Login == Username && x.Passwd == Password).Select(y => y.Login).FirstOrDefault();
+				var role = db.Users.Where(x => x.Login == Username && x.Passwd==Password).Select(y => y.RoleId).FirstOrDefault();
+				switch (role)
+				{
+					case 1:
+						Shared.NavMenu.checkAuth = true;
+						NavigationManager.NavigateTo("/file-upload");
+						break;
+					case 2:
+						Shared.NavMenu.checkAuth = true;
+						NavigationManager.NavigateTo("/application-grades");
+						break;
+					case 3:
+						Shared.NavMenu.checkAuth = true;
+						NavigationManager.NavigateTo($"/profile?_genLogin={login}");
+						break;
+					default:
+						break;
+				}
+			}
+            catch { 
+				
+            }
+		}
+    }
+}

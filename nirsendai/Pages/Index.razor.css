@@ -1,0 +1,37 @@
+﻿.container-login100 {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(#000000);
+    /* Add your existing background styles here */
+}
+
+.login100-form-titleIndex {
+    font-family: Poppins-Bold;
+    font-size: 24px;
+    color: #ffffff;
+    text-align: center;
+    width: 80%; /* Adjust the width as needed */
+    margin-bottom: 20px; /* Add some spacing between title and description */
+}
+
+.description {
+    font-family: Poppins-Bold;
+    font-size: 16px;
+    color: #ffffff;
+    text-align: center;
+    width: 80%; /* Adjust the width as needed */
+    margin-bottom: 20px; /* Add some spacing between description and button */
+}
+
+.login100-form-btn {
+    background-color: #your-button-color; /* Set your button's background color */
+    color: #ffffff;
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+}

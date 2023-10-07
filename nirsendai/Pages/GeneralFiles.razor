@@ -1,0 +1,30 @@
+﻿@page "/files"
+@using Microsoft.AspNetCore.Mvc;
+
+<head>
+	<title>Login V1</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" type="image/png" href="/images/icons/favicon.ico" />
+	<link rel="stylesheet" type="text/css" href="/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="/css/main.css">
+</head>
+<div id="fileContainer"></div>
+<div class="container-login100">
+	@{
+		var files = Directory.GetFiles(Path.Combine("D:/Hakaton/arctechdata2023ecology/data/data", ""));
+	}
+	@foreach (var file in files)
+	{
+		<div class="file-window">
+			<p>@Path.GetFileName(file)</p>
+			<a href="/Files/@Path.GetFileName(file)">Просмотреть</a>
+			<a href="/Files/@Path.GetFileName(file)">Cкачать</a>
+		</div>
+	}
+
+</div>
+
+
+
+

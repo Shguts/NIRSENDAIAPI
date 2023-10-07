@@ -1,0 +1,106 @@
+﻿@page "/profile"
+@using System.Threading.Tasks
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+
+<head>
+    <title>PersonArea</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/images/icons/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" type="text/css" href="/css/main.css">
+</head>
+
+@if (Shared.NavMenu.checkAuth)
+{
+
+    <div class="container-login100" >
+        <form class="login100-form">
+            <span class="login100-form-title">
+                Personal Account
+            </span>
+            <span class="txt1">
+                Имя
+            </span>
+            <div class="wrap-input100">+
+                <input class="input100regr" type="text" @bind="firstName">
+                <span class="focus-input100" ></span>
+            </div>
+            <span class="txt1">
+                Фамилия
+            </span>
+            <div class="wrap-input100">
+                <input class="input100regr" type="text" @bind="lastName">
+                <span class="focus-input100"></span>
+            </div>
+            <span class="txt1">
+                Отчество
+            </span>
+            <div class="wrap-input100">
+                <input class="input100regr" type="text" @bind="secondName">
+                <span class="focus-input100"></span>
+            </div>
+            <span class="txt1">
+                Дата рождения
+            </span>
+            <div class="wrap-input100">
+                <input class="input100regr" type="date" id="date" name="date" />
+                <span class="focus-input100"></span>
+            </div>
+            <div class="text-center p-t-136">
+                <button class="login100-form-btn" type="button" @onclick="Save">
+                    Сохранить
+                </button>
+            </div>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                }
+            </style>
+        </form>
+    </div>
+}
+else
+{
+    <nirsendai.Pages.Login />
+}
+
+@code {
+    private string _genLogin;
+    private Models.NirsendaiContext dbo = new Models.NirsendaiContext();
+    private string lastName;
+    private string firstName;
+    private string secondName;
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("_genLogin", out var GenLogin))
+        {
+            _genLogin = GenLogin;
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await dbo.Users.FirstOrDefaultAsync(x => x.Login == _genLogin);
+        if (user != null)
+        {
+            firstName = user.Name;
+            lastName = user.LastName;
+            secondName = user.SecondName;
+        }
+    }
+    public void Save()
+    {
+        using (Models.NirsendaiContext db = new Models.NirsendaiContext())
+        {
+            var user = db.Users.Where(x => x.Login == _genLogin).FirstOrDefault();
+            user.Name = firstName;
+            user.SecondName = secondName;
+            user.LastName = lastName;
+            db.SaveChanges();
+        }
+    }
+}

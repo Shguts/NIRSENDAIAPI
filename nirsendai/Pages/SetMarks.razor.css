@@ -1,0 +1,35 @@
+﻿.btn-primary {
+	color: #fff;
+	background-color: #000000;
+	border-color: #622eff;
+}
+.table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+	.table th,
+	.table td {
+		border: 1px solid black;
+		padding: 8px;
+	}
+
+.modal-container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: auto; /* Add overflow property to enable scrollbar */
+}
+
+.modal-content {
+	background-color: white;
+	padding: 20px;
+	border-radius: 5px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}

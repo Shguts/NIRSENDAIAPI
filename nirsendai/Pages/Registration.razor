@@ -1,0 +1,130 @@
+﻿@page "/registr"
+@inject NavigationManager NavigationManager
+
+<head>
+	<title>Registration</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--===============================================================================================-->
+	<link rel="icon" type="image/png" href="/images/icons/favicon.ico" />
+	<!--===============================================================================================-->
+	<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+	<!--===============================================================================================-->
+	<!--===============================================================================================-->
+	<!--===============================================================================================-->
+	<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="/css/main.css">
+	<!--===============================================================================================-->
+</head>
+<div>
+	<div class="container-login100">
+		<form class="login100-form">
+			<span class="login100-form-title">
+				Регистрация
+			</span>
+			<span class="txt1">
+				Логин
+			</span>
+			<div class="wrap-input100" >
+				<input class="input100regr" type="text" @bind="_login">
+				<span class="focus-input100"></span>
+			</div>
+			<span class="txt1">
+				Имя
+			</span>
+			<div class="wrap-input100">
+				<input class="input100regr" type="text" @bind="_name">
+				<span class="focus-input100"></span>
+			</div>
+			<span class="txt1">
+				Фамилия
+			</span>
+			<div class="wrap-input100">
+				<input class="input100regr" type="text" @bind="_lastName">
+				<span class="focus-input100"></span>
+			</div>
+			<span class="txt1">
+				Отчество
+			</span>
+			<div class="wrap-input100">
+				<input class="input100regr" type="text" @bind="_secondName">
+				<span class="focus-input100"></span>
+			</div>
+			<span class="txt1">
+				Дата рождения
+			</span>
+			<div class="wrap-input100">
+				<input class="input100regr" type="date" id="date" name="date" @bind="_dateBirth" />
+				<span class="focus-input100"></span>
+			</div>
+			<span class="txt1">
+				Введите пароль
+			</span>
+			<div class="wrap-input100">
+				<input class="input100" type="password" @bind="_psswd">
+				<span class="focus-input100"></span>
+				<span class="symbol-input100">
+					<i class="fa fa-lock" aria-hidden="true"></i>
+				</span>
+			</div>
+			<span class="txt1">
+				Повторите пароль
+			</span>
+			<div class="wrap-input100">
+				<input class="input100" type="password" @bind="_checkPsswd">
+				<span class="focus-input100"></span>
+				<span class="symbol-input100">
+					<i class="fa fa-lock" aria-hidden="true"></i>
+				</span>
+			</div>
+			<div class="text-center p-t-12">
+				<span class="txt1">
+					Уже
+				</span>
+				<a class="txt2" href="#">
+					авторизированы?
+				</a>
+			</div>
+
+			<div class="text-center p-t-136">
+				<button class="login100-form-btn" @onclick="Reg_Click" type="button">
+					Создать
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+@code {
+	private String _login;
+	private String? _name;
+	private String? _lastName;
+	private String? _secondName;
+	private DateOnly _dateBirth;
+	private String? _psswd;
+	private String? _checkPsswd;
+
+	private void Reg_Click()
+	{
+		using (var db = new Models.NirsendaiContext())
+		{
+			Models.User user = new Models.User();
+			try
+			{
+				user.Login = _login;
+				user.Name = _name;
+				user.LastName = _lastName;
+				user.SecondName = _secondName;
+				if (_psswd == _checkPsswd) {
+					user.Passwd = _checkPsswd;
+				} else { throw new Exception(); }
+				user.RoleId = 1;
+				db.Users.Add(user);
+				db.SaveChanges();
+				NavigationManager.NavigateTo("/login");
+			}
+			catch {  }
+		}
+	}
+}

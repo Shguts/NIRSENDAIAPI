@@ -1,0 +1,328 @@
+﻿    @page "/file-upload"
+    @inject NavigationManager NavigationManager;
+    @using Microsoft.Office.Interop.Word;
+    @using Word = Microsoft.Office.Interop.Word;
+    @using System.Threading.Tasks;
+    @using System.Text;
+    @using System.IO;
+    @using System.Drawing;
+
+
+
+    <head>
+        <title>Registration</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1"
+        <link rel="icon" type="image/png" href="/images/icons/favicon.ico" />
+        <link rel="stylesheet" type="text/css" href="/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/main.css">
+    </head>
+
+    <h3>FileUpload</h3>
+
+    <div>
+        <div class="container-login100" @onclick="() => ShowModal()">
+		    <form class="login100-form">
+			    <span class="login100-form-title">
+				    Правила для участника:
+			    </span>
+                <button class="login100-form-btn">
+                    Заполнить заявку
+                </button>
+		    </form>
+	    </div>
+    </div>
+    @if (!selectedRequest)
+    {
+        <div class="container-login100" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
+            <div class="modal-content" style="background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
+                <h1>Заявка</h1>
+                <form class="login100-formz">
+                    <span>
+                        Название практики
+                    </span>
+                    <div>
+                        <input type="text">
+                    </div>
+                    <span>
+                        Описание завки
+                    </span>
+                    <div>
+                        <input>
+                    </div>
+                </form>
+                 @switch (currentPage)
+                 {
+                     case 1:
+                        <table name="table1" class="table">
+                            <tbody>
+                                <tr>
+                                    <td>Наименование субъекта Российской Федерации</td>
+                                <td><input @bind="ORG" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Наименование муниципального образования</td>
+                                <td><input @bind="NAMESUB" /></td>
+                                </tr>
+                                <tr>
+                                    <td>ФИО Главы муниципального образования / Главы местной администрации</td>
+                                <td><input @bind="NAMEMUN" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Наименование должности Главы муниципального образование / Главы местной администрации</td>
+                                <td><input @bind="FIOGLAV" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Официальный веб-сайт Участника Конкурса</td>
+                                <td><input @bind="OFFGLAV" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Площадь территории муниципального образования, кв. км</td>
+                                <td><input @bind="PLSGLAV" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Количество населения муниципального образования, тыс. чел. (на момент заполнения заявки)</td>
+                                <td><input @bind="FIOGLAV"  /></td>
+                                </tr>
+                                <tr>
+                                    <td>ФИО должностного лица, ответственного за организационное сопровождение участия муниципального образования в Конкурсе </td>
+                                <td><input @bind="FIODOLGLAV" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Должность ответственного должностного лица </td>
+                                <td><input @bind="DOLSHN" /></td>
+                                </tr>
+                                <tr>
+                                    <td>Телефон должностного лица: </td>
+                                <td><input @bind="PHONE" /></td>
+                                </tr>
+                                <tr>
+                                    <td>E-mail должностного лица:  </td>
+                                <td><input @bind="EMAIL" /></td>
+                                </tr>
+                            </tbody>
+                    </table>
+                    break;
+                case 2:
+                    <table name="table2" class="table">
+                        <thead>
+                            <tr>
+                                <th>№п/п</th>
+                                <th>Наименование</th>
+                                <th class="special_class" colspan="5">Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Наименование субъекта Российской Федерации</td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Наименование муниципального образования</td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>ФИО Главы муниципального образования / Главы местной администрации</td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Наименование должности Главы муниципального образование / Главы местной администрации</td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Официальный веб-сайт Участника Конкурса</td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Площадь территории муниципального образования, кв. км</td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>Количество населения муниципального образования, тыс. чел. (на момент заполнения заявки)</td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>8</td>
+                                <td>ФИО должностного лица, ответственного за организационное сопровождение участия муниципального образования в Конкурсе </td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>9</td>
+                                <td>Должность ответственного должностного лица </td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>10</td>
+                                <td>Телефон должностного лица: </td>
+                                <td><input /></td>
+                            </tr>
+                            <tr>
+                                <td>11</td>
+                                <td>E-mail должностного лица:  </td>
+                                <td><input /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    break;
+                    default:
+                        break;
+                 }
+
+                <form class="login100-formz">
+                <button type="button" class="btn btn-primary" @onclick="() => ChangePage(-1)">←</button>
+                <p class="txt2">@currentPage</p>
+                <button type="button" class="btn btn-primary" @onclick="() => ChangePage(1)">→</button>
+                </form>
+                <button class="btn btn-primary" @onclick="() => CloseModal()">Закрыть</button>
+            <button class="btn btn-primary" @onclick="() => Upload()">Сохранить</button>
+            </div>
+        </div>
+    }
+
+@code {
+    public string ORG;
+    public string NAMESUB;
+    public string NAMEMUN;
+    public string FIOGLAV;
+    public string NAMGLAV;
+    public string OFFGLAV;
+    public string PLSGLAV;
+    public string FIODOLGLAV;
+    public string DOLSHN;
+    public string PHONE;
+    public string EMAIL;
+    public string KOLDOLGLAV;
+    class WordHelper
+    {
+        private FileInfo _fileInfo;
+        public WordHelper(string filename)
+        {
+            if (File.Exists(filename))
+            {
+                _fileInfo = new FileInfo(filename);
+            }
+            else
+            {
+                throw new ArgumentException("File not Found");
+            }
+
+        }
+        internal bool Process(Dictionary<string,string> items)
+        {
+            Word.Application app = null;
+            try
+            {
+                app = new Word.Application();
+                Object file = _fileInfo.FullName;
+
+                Object missing = Type.Missing;
+                var doc = app.Documents.Open(file);
+                foreach (var item in items)
+                {
+                Word.Find find = app.Selection.Find;
+                find.Text = item.Key;
+                    find.Replacement.Text = item.Value;
+                    Object wrap = Word.WdFindWrap.wdFindContinue;
+                    Object replace = Word.WdReplace.wdReplaceAll;
+                    find.Execute(FindText: Type.Missing,
+                    MatchCase: false,
+                    MatchWholeWord: false,
+                    MatchWildcards: false,
+                    MatchSoundsLike: missing,
+                    MatchAllWordForms:false,
+                    Forward:true,
+                    Wrap:wrap,
+                    Format:false,
+                    ReplaceWith:missing,Replace:replace
+                );
+                }
+                string bookmark2 = "testcheckbox";
+                Bookmark test = doc.Bookmarks[bookmark2];
+                Word.Range range = test.Range;
+                var tend = range.ContentControls;
+                foreach (ContentControl cc in tend)
+                {
+                    if (cc.Type==WdContentControlType.wdContentControlCheckBox)
+                    {
+                        cc.Checked = true;
+                    }
+                }
+                Object newfileName = Path.Combine(_fileInfo.DirectoryName, DateTime.Now.ToString("yyyyMMdd HHmmss") + _fileInfo.Name);
+                app.ActiveDocument.SaveAs2(newfileName);
+                app.ActiveDocument.Close();
+                app.Quit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (app!=null)
+                {
+                    app.Quit();
+                }
+            }
+        }
+
+    }
+    private int currentPage=1;
+    private int maxPage;
+
+    private void ChangePage(int increment)
+    {
+        currentPage += increment;
+        if (currentPage < 1)
+        {
+            currentPage = 1;
+        }
+        if (currentPage > 3)
+        {
+            currentPage = 3;
+        }
+    }
+    Boolean selectedRequest;
+    private void ShowModal()
+    {
+        currentPage = 1;
+        selectedRequest = false;
+    }
+
+    private void Upload()
+    {
+        var relativePath = @"C:\Users\ugluu\source\repos\nirsendai\nirsendai\Pages\UploadFilesShablons\shablon.docx";
+        var fullPath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
+        var helper = new WordHelper(fullPath);
+        var items = new Dictionary<String, String>
+        {
+            { "<ORG>",ORG },
+            { "<NAMESUB>",NAMESUB},
+            { "<NAMEMUN>",NAMEMUN },
+            { "<FIOGLAV>",FIOGLAV },
+            { "<NAMGLAV>",NAMGLAV },
+            { "<OFFGLAV>",OFFGLAV },
+            { "<PLSGLAV>",PLSGLAV },
+            { "<FIODOLGLAV>",FIODOLGLAV },
+            { "<KOLDOLGLAV>",KOLDOLGLAV },
+            { "<DOLSHN>",DOLSHN },
+            { "<PHONE>",PHONE },
+            { "<EMAIL>",EMAIL }
+        };
+        helper.Process(items);
+        CloseModal();
+    }
+    private void CloseModal()
+    {
+        selectedRequest = true;
+        currentPage = 1;
+    }
+ }
