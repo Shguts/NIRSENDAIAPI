@@ -15,11 +15,15 @@ public partial class User
 
     public string? SecondName { get; set; }
 
-    public int? RoleId { get; set; }
+    public DateTime? DateBirth { get; set; }
+
+    public int RoleId { get; set; }
 
     public virtual ICollection<Ball> Balls { get; set; } = new List<Ball>();
 
-    public virtual Role? Role { get; set; }
+    public virtual ICollection<FileUser> FileUsers { get; set; } = new List<FileUser>();
+
+    public virtual Role Role { get; set; } = null!;
 
     public virtual ICollection<Zayavl> Zayavls { get; set; } = new List<Zayavl>();
 }

@@ -19,6 +19,8 @@ public partial class NirsendaiContext : DbContext
 
     public virtual DbSet<Critery> Criteries { get; set; }
 
+    public virtual DbSet<FileUser> FileUsers { get; set; }
+
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -49,11 +51,6 @@ public partial class NirsendaiContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_balls_Criteries1");
 
-            entity.HasOne(d => d.IdZayvNavigation).WithMany(p => p.Balls)
-                .HasForeignKey(d => d.IdZayv)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_balls_zayavl");
-
             entity.HasOne(d => d.LoginNavigation).WithMany(p => p.Balls)
                 .HasForeignKey(d => d.Login)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -71,6 +68,26 @@ public partial class NirsendaiContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("name_criterie");
+        });
+
+        modelBuilder.Entity<FileUser>(entity =>
+        {
+            entity.HasKey(e => e.IdFile);
+
+            entity.Property(e => e.IdFile)
+                .ValueGeneratedNever()
+                .HasColumnName("id_file");
+            entity.Property(e => e.FileData).HasColumnName("file_data");
+            entity.Property(e => e.FileName)
+                .HasMaxLength(100)
+                .HasColumnName("file_name");
+            entity.Property(e => e.Login)
+                .HasMaxLength(50)
+                .HasColumnName("login");
+
+            entity.HasOne(d => d.LoginNavigation).WithMany(p => p.FileUsers)
+                .HasForeignKey(d => d.Login)
+                .HasConstraintName("FK_FileUsers_Users");
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -94,6 +111,9 @@ public partial class NirsendaiContext : DbContext
             entity.Property(e => e.Login)
                 .HasMaxLength(50)
                 .HasColumnName("login");
+            entity.Property(e => e.DateBirth)
+                .HasColumnType("date")
+                .HasColumnName("date_birth");
             entity.Property(e => e.LastName)
                 .HasMaxLength(50)
                 .HasColumnName("last_name");
@@ -110,15 +130,18 @@ public partial class NirsendaiContext : DbContext
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Users_roles");
         });
 
         modelBuilder.Entity<Zayavl>(entity =>
         {
-            entity.HasKey(e => e.IdZayv);
+            entity.HasKey(e => new { e.IdZayv, e.IdFile });
 
             entity.ToTable("zayavl");
 
+            entity.Property(e => e.IdZayv).HasColumnName("id_zayv");
+            entity.Property(e => e.IdFile).HasColumnName("id_file");
             entity.Property(e => e.IdZayv)
                 .ValueGeneratedNever()
                 .HasColumnName("id_zayv");
@@ -127,8 +150,14 @@ public partial class NirsendaiContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("login");
 
+            entity.HasOne(d => d.IdFileNavigation).WithMany(p => p.Zayavls)
+                .HasForeignKey(d => d.IdFile)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_zayavl_FileUsers1");
+
             entity.HasOne(d => d.LoginNavigation).WithMany(p => p.Zayavls)
                 .HasForeignKey(d => d.Login)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_zayavl_Users");
         });
 

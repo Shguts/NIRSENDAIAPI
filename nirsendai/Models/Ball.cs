@@ -15,7 +15,5 @@ public partial class Ball
 
     public virtual Critery IdCriterieNavigation { get; set; } = null!;
 
-    public virtual Zayavl IdZayvNavigation { get; set; } = null!;
-
     public virtual User LoginNavigation { get; set; } = null!;
 }

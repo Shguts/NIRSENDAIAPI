@@ -1,200 +1,510 @@
-﻿    @page "/application-grades"
-    @using nirsendai.Data
+﻿@page "/application-grades"
+@using System.IO;
+@using DocumentFormat.OpenXml.Packaging;
+@using DocumentFormat.OpenXml.Wordprocessing;
+<PageTitle>Marks</PageTitle>
 
-    <PageTitle>Marks</PageTitle>
+<head>
+    <link rel="stylesheet" href="../Shared/MainLayout.razor.css" />
+</head>
+<h1>Участники</h1>
+<button class="btn btn-primary">Статистика</button>
+<p>This component demonstrates fetching data from a service.</p>
 
-    <head>
-        <link rel="stylesheet" href="../Shared/MainLayout.razor.css" />
-    </head>
-    <h1>Applications</h1>
-
-    <p>This component demonstrates fetching data from a service.</p>
-
-    @if (requests_list == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else
-    {
-        <table class="table">
-            <thead>
+@if (requests_list == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Номер заявки</th>
+                <th>Логин</th>
+                <th>Имя</th>
+                <th>Фамилия</th>
+                <th>Отчество</th>
+                <th>Скачать файлы</th>
+                <th>Проставить баллы по заявке</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var i in requests_list.DistinctBy(x=>x.login))
+            {
                 <tr>
-                    <th>Номер</th>
-                    <th>Название</th>
-                    <th>Статус</th>
-                    <th></th>
+                    <td>@i.id_zayv</td>
+                    <td>@i.login</td>
+                    <td>@i._first_name</td>
+                    <td>@i._last_name</td>
+                    <td>@i._second_name</td>
+                    <td><button class="btn btn-primary" @onclick="() => ShowFiles(i)">Файлы</button></td>
+                    <td><button class="btn btn-primary" @onclick="() => ShowModal(i)">Оценить</button></td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach (var i in requests_list)
-                {
-                    <tr>
-                        <td>@i.id</td>
-                        <td>@i.title</td>
-                        <td>@i.status</td>
-                        <td><button class="btn btn-primary" @onclick="() => ShowModal(i)">Оценить</button></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
+            }
+        </tbody>
+    </table>
+}
 
-    @if (selectedRequest != null)
-    {
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
-            <div style="background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
-                <h2>Оценка заявки @selectedRequest.id</h2>
-            <table class="table">
+@if (selectedRequest != null)
+{
+    <div class="modal-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
+            <h2>Оценка заявки @selectedRequest.id_zayv</h2>
+            <p>Таблица заполненная участником.</p>
+            <div class="table-container">
+            <table name="table1" class="table">
                 <thead>
                     <tr>
-                        <th>Вид планируемых к реализации мероприятий</th>
-                        <th class="special_class" colspan="5">Критерии оценки</th>
+                        <th>№ п/п</th>
+                        <th>Наименование показателя, единицы измерения</th>
+                        <th>Обозначение</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td></td>
-                        <td>а) общие сведения о Практике (обозначение критерия - Кn, n- номер Практики)</td>
-                        <td>б) соотношение затрат на осуществление Практики и эффективности от ее реализации (обозначение критерия – Sn, n- номер Практики)</td>
-                        <td>в) условия тиражирования Практики (обозначение критерия – Rn, n- номер Практики)</td>
-                        <td>г) эффект от реализации Практики (обозначение критерия – Un,n- номер Практики)</td>
+                        <td>1</td>
+                        <td>Численность постоянного населения на 1 января текущего года, тыс. чел.</td>
+                        <td>@tableElements[0]</td>
                     </tr>
                     <tr>
-                        <td>1. Мероприятия, направленные на предупреждение ЧС (Типовые мероприятия см. в Приложении 2 к Методике)</td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
+                        <td>2</td>
+                        <td>Количество лечебно-профилактических организаций, ед.</td>
+                        <td>@tableElements[1]</td>
                     </tr>
                     <tr>
-                        <td>2. Мероприятия, направленные на готовность к ЧС (Типовые мероприятия см. в Приложении 2 к Методике)</td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
+                        <td>3</td>
+                        <td>Доля муниципальных дошкольных образовательных организаций, здания которых находятся  в аварийном состоянии или требуют капитального ремонта, в общем числе муниципальных дошкольных образовательных организаций, %</td>
+                        <td>@tableElements[2]</td>
                     </tr>
                     <tr>
-                        <td>3. Мероприятия, направленные на реагирование и ликвидацию ЧС (Типовые мероприятия см. в Приложении 2 к Методике)</td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
+                        <td>4</td>
+                        <td>Доля муниципальных общеобразовательных организаций, здания которых находятся в аварийном состоянии или требуют капитального ремонта, в общем количестве муниципальных общеобразовательных организаций, %</td>
+                        <td>@tableElements[3]</td>
                     </tr>
                     <tr>
-                        <td>4. Мероприятия, направленные на восстановление после ЧС, по принципу «делать лучше, чем было  (Типовые мероприятия см. в Приложении 2 к Методике)  </td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
-                        <td>0–100<input /></td>
+                        <td>5</td>
+                        <td>Доля муниципальных учреждений культуры, здания которых находятся в аварийном состоянии или требуют капитального ремонта, в общем количестве муниципальных учреждений культуры, %</td>
+                        <td>@tableElements[4]</td>
                     </tr>
                     <tr>
-                        <td>Весовой коэффициент критерия</td>
-                        <td>0.2</td>
-                        <td>0.3</td>
-                        <td>0.3</td>
-                        <td>0.2</td>
+                        <td>6</td>
+                        <td>Численность населения, охваченного системами оповещения, тыс. чел/ % от общей численности населения территории</td>
+                        <td>@tableElements[5]</td>
                     </tr>
                     <tr>
-                        <td>Итого</td>
-                        <td>0–20</td>
-                        <td>0–30</td>
-                        <td>0–40</td>
-                        <td>0–10</td>
+                        <td>7</td>
+                        <td>Наличие утвержденного документа территориального планирования, да/нет </td>
+                        <td>@tableElements[6]</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>Наличие Единого документа территориального планирования и градостроительного зонирования, да/нет </td>
+                        <td>@tableElements[7]</td>
+                    </tr>
+                    <tr>
+                        <td>9 </td>
+                        <td>Степень износа жилого фонда, %</td>
+                        <td>@tableElements[8]</td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>Смертность населения трудоспособного возраста, чел.</td>
+                        <td>@tableElements[9]</td>
+                    </tr>
+                    <tr>
+                        <td>11</td>
+                        <td>Смертность в ДТП, чел.</td>
+                        <td>@tableElements[10]</td>
                     </tr>
                 </tbody>
             </table>
-                <button class="btn btn-primary" @onclick="CloseModal">Закрыть</button>
-            <button class="btn btn-primary" >Подтвердить</button>
             </div>
+            <p>Таблица для оценки критериев.</p>
+            <div class="table-container">
+            <table name="table1" class="table">
+                <thead>
+                    <tr>
+                        <th>Критерий</th>
+                        <th>Обозначение критерия</th>
+                        <th>Балльная оценка</th>
+                        <th>Подкритерии оценки лучшей практики</th>
+                        <th>Весовой коэффициетнт критерия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>а) эффект от реализации Практики </td>
+                        <td>
+                            Un, n – номер Практики
+                        </td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td><span>•	Временной эффект от реализации Практики</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Воздействие Практики на источники ЧС</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Воздействие практики на снижение количества пострадавших и погибших в ЧС</span></td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            a1
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            б) социально-экономическая эффективность Практики
+                        </td>
+                        <td>
+                            Sn, n – номер Практики
+                        </td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td><span>•	Включенность практики в целевые программы</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Доля привлекаемых внебюджетных средств в процентах от общей суммы затрат</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Количество населения, охваченного реализацией Практики</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Участие в конкурсах на получение грантов для реализации представляемой Практики</span></td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            a2
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            в) тиражируемость Практики
+                        </td>
+                        <td>
+                            Rn, n – номер Практики
+                        </td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                                <tr>
+                                    <td><span>0-25</span><input /></td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td><span>•	Наличие дорожной карты для реализации Практики</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Доля внешних кадров, необходимых для привлечения при реализации Практики</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Потребность в финансовых ресурсах, необходимых  для тиражирования Практики</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Необходимость приобретения материально-технических ресурсов в процентах от имеющихся в наличии</span></td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td>
+                            a3
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <button class="btn btn-primary" @onclick="()=>Calculated(selectedRequest)">Рассчитать</button>
+            <button class="btn btn-primary" @onclick="CloseModal">Закрыть</button>
+            <button class="btn btn-primary">Подтвердить</button>
         </div>
-    }
+    </div>
+}
+@if (detectedRequest != null)
+{
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
+        <div style="background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Номер файла</th>
+                        <th>Логин</th>
+                        <th>Файл</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var i in detectedRequest)
+                    {
+                        <tr>
+                            <td>@i.IdFile</td>
+                            <td>@i.Login</td>
+                            <td>
+                                @i.FileName
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Номер файла</th>
+                        <th>Логин</th>
+                        <th>Файл</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var i in detectedRequest)
+                    {
+                        <tr>
+                            <td>@i.IdFile</td>
+                            <td>@i.Login</td>
+                            <td>
+                                @i.FileName
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <button class="btn btn-primary" @onclick="CloseModal">Закрыть</button>
+            <button class="btn btn-primary" @onclick="() => DownloadsFile(detectedRequest)">Скачать</button>
+        </div>
+    </div>
+}
 
 @code {
-    public class PracticeEvaluation
+    public int Un1;
+    public int Un2;
+    public int Un3;
+    public int Un4;
+    public int Sn1;
+    public int Sn2;
+    public int Sn3;
+    public int Sn4;
+    public int Rn1;
+    public int Rn2;
+    public int Rn3;
+    public int Rn4;
+
+    public string _genLogin;
+    public class Zayavka
     {
-        // Метод для расчета окончательной оценки по критериям
-        public double CalculateFinalScore(double[] weights, double[] criterionK, double[] criterionS, double[] criterionR, double[] criterionU)
+        public int id_zayv;
+        public String? login;
+        public String? _first_name;
+        public String? _last_name;
+        public String? _second_name;
+
+        public Zayavka(int id_zayv, String login, String _first_name, String _last_name, String _second_name)
         {
-            // Проверка на совпадение размеров массивов
-            if (weights.Length != 4 || criterionK.Length != criterionS.Length || criterionS.Length != criterionR.Length || criterionR.Length != criterionU.Length)
-            {
-                throw new ArgumentException("Некорректные размеры массивов");
-            }
-
-            // Расчет усредненной оценки для критерия K
-            double averageK = CalculateAverage(criterionK);
-
-            // Расчет усредненной оценки для критерия S
-            double averageS = CalculateAverage(criterionS);
-
-            // Расчет усредненной оценки для критерия R
-            double averageR = CalculateAverage(criterionR);
-
-            // Расчет усредненной оценки для критерия U
-            double averageU = CalculateAverage(criterionU);
-
-            // Расчет окончательной оценки
-            double finalScore = weights[0] * averageK + weights[1] * averageS + weights[2] * averageR + weights[3] * averageU;
-
-            return finalScore;
-        }
-
-        // Метод для расчета усредненной оценки по критерию
-        private double CalculateAverage(double[] criterion)
-        {
-            double sum = 0;
-            int count = criterion.Length;
-
-            foreach (double score in criterion)
-            {
-                sum += score;
-            }
-
-            double average = sum / count;
-            return average;
+            this.id_zayv = id_zayv;
+            this.login = login;
+            this._first_name = _first_name;
+            this._last_name = _last_name;
+            this._second_name = _second_name;
         }
     }
-    class Zayavka
+    public class Files
     {
-        public int id;
-        public String title;
-        public String status;
+        private int? id_file;
+        private byte[]? file_data;
+        private String? _file_name;
+        private String? _login;
 
-        public Zayavka(int id, String title, String status)
+        public int? IdFile
         {
-            this.id = id;
-            this.title = title;
-            this.status = status;
+            get { return id_file; }
+            set { id_file = value; }
+        }
+        public String? Login
+        {
+            get { return _login; }
+            set { _login = value; }
+        }
+
+        public byte[]? FileData
+        {
+            get { return file_data; }
+            set { file_data = value; }
+        }
+        public String? FileName
+        {
+            get { return _file_name; }
+            set { _file_name = value; }
+        }
+        public Files(int? id_file, byte[]? file_data, String? Login, String? Filename)
+        {
+            this.id_file = id_file;
+            this.file_data = file_data;
+            this.Login = Login;
+            this.FileName = Filename;
         }
     }
 
-    class Criterion
-    {
-        public string Name { get; set; }
-        public int Grade { get; set; }
-    }
     //добавить координатора
-
     List<Zayavka> requests_list;
     Zayavka selectedRequest;
-    List<Criterion> criteriaList;
+    List<Files> detectedRequest;
+    public List<double> tableElements = new List<double>();
 
-    protected override async Task OnInitializedAsync()
+
+
+    protected override void OnInitialized()
     {
         using (var db = new Models.NirsendaiContext())
         {
+            try
+            {
+                var requests_list1 = (from u in db.Users
+                                      join fu in db.FileUsers on u.Login equals fu.Login
+                                      join z in db.Zayavls on fu.IdFile equals z.IdFile
+                                      select new Zayavka(
+                                          z.IdZayv,
+                                          u.Login,
+                                          u.Name,
+                                          u.LastName,
+                                          u.SecondName
+                                      )).ToList();
+                requests_list = requests_list1.Distinct().ToList();
+            }
+            catch (Exception e)
+            {
 
-            requests_list = new List<Zayavka>() { new Zayavka(1, "sss", "ddd"), new Zayavka(2, "aaa", "xxx"), new Zayavka(3, "www", "vvv") };
-            criteriaList = new List<Criterion>() { new Criterion() { Name = "Criterion 1", Grade = 5 }, new Criterion() { Name = "Criterion 2", Grade = 4 }, new Criterion() { Name = "Criterion 3", Grade = 3 } };
+            }
+        }
+        using (WordprocessingDocument doc = WordprocessingDocument.Open(@"D:\shg\20231005_160446shablon.docx", false))
+        {
+            // Получаем таблицу по индексу (нумерация начинается с 0)
+            Table table = doc.MainDocumentPart.Document.Body.Elements<Table>().ElementAt(6);
+
+            // Если таблица не найдена, выводим сообщение об ошибке
+            if (table == null)
+            {
+                Console.WriteLine("Таблица не найдена в документе.");
+                return;
+            }
+
+            // Получаем строки таблицы
+            IEnumerable<TableRow> rows = table.Elements<TableRow>();
+
+            // Проходим по каждой строке таблицы
+            foreach (TableRow row in rows)
+            {
+                // Получаем ячейки строки
+                IEnumerable<TableCell> cells = row.Elements<TableCell>();
+
+                TableCell cell = cells.ElementAt(2);
+
+                // Получаем текст в ячейке
+                string text = cell.InnerText;
+                if (int.TryParse(text,out var result))
+                {
+                    tableElements.Add(Convert.ToDouble(text));
+                }
+                // Выводим текст в консоль
+                Console.WriteLine(text);
+            }
+            tableElements.RemoveAt(0);
         }
     }
-        private void ShowModal(Zayavka request)
+    private void ShowModal(Zayavka request)
+    {
+        selectedRequest = request;
+    }
+    private void Calculated(Zayavka request)
+    {
+        float Gk = (((float)(tableElements[11] / tableElements[10]) * 100) + ((float)(tableElements[12] / tableElements[10]) * 100) + ((float)(tableElements[13] / tableElements[10]) * 100) + ((float)(tableElements[14] / tableElements[10]) * 100) + ((float)(tableElements[15] / tableElements[10]) * 100)) / 5;
+        float Vk = ((float)(tableElements[3] + tableElements[4] + tableElements[5] + tableElements[9]) / 4);
+        float lk = ((100 - Gk) + (100 - Vk)) / 2;
+        var Un = Un1 + Un2 + Un3 + Un4;
+        var Sn = Sn1 + Sn2 + Sn3 + Sn4;
+        var Rn = Rn1 + Rn2 + Rn3 + Rn4;
+        var listCriteries = new List<float> { lk, Un, Sn, Rn };
+        using (var db = new Models.NirsendaiContext())
         {
-            selectedRequest = request;
-        }
 
-        private void CloseModal()
-        {
-            selectedRequest = null;
+                for (var i = 1; i <= 4; i++) {
+                    var newBall = new Models.Ball();
+                    newBall.IdZayv = 1;
+                    newBall.IdCriterie = 1;
+                    newBall.Login = "shg";
+                    newBall.Mark = 1;
+                    db.Balls.Add(newBall);
+                    db.SaveChanges();
+                }        
         }
     }
+    private void ShowFiles(Zayavka request)
+    {
+        CloseModal();
+        using (var db = new Models.NirsendaiContext())
+        {
+            detectedRequest = (from u in db.FileUsers where u.Login == request.login select new Files(u.IdFile, u.FileData, request.login, u.FileName)).ToList();
+        }
+    }
+
+    private void CloseModal()
+    {
+        selectedRequest = null;
+        detectedRequest = null;
+    }
+    private void DownloadsFile(List<Files> detected)
+    {
+        string directoryPath = $"D:\\{detected.Select(x => x.Login).First()}";
+        Directory.CreateDirectory(directoryPath);
+        foreach (var i in detected.Select(x => x).ToList())
+        {
+            string filePath = Path.Combine(directoryPath, i.FileName);
+            using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+            {
+                fs.Write(i.FileData, 0, i.FileData.Length);
+            }
+        }
+    }
+}

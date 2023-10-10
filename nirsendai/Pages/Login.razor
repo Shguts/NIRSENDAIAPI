@@ -68,7 +68,7 @@
 				{
 					case 1:
 						Shared.NavMenu.checkAuth = true;
-						NavigationManager.NavigateTo("/file-upload");
+						NavigationManager.NavigateTo($"/file-upload?_genLogin={login}");
 						break;
 					case 2:
 						Shared.NavMenu.checkAuth = true;
