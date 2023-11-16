@@ -1,21 +1,14 @@
 ﻿@page "/registr"
+@using System.Text.RegularExpressions;
 @inject NavigationManager NavigationManager
 
 <head>
 	<title>Registration</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<!--===============================================================================================-->
 	<link rel="icon" type="image/png" href="/images/icons/favicon.ico" />
-	<!--===============================================================================================-->
-	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
-	<!--===============================================================================================-->
-	<!--===============================================================================================-->
-	<!--===============================================================================================-->
-	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
-	<!--===============================================================================================-->
 </head>
 <div>
 	<div class="container-login100">
@@ -82,7 +75,7 @@
 				<span class="txt1">
 					Уже
 				</span>
-				<a class="txt2" href="#">
+				<a class="txt2" href="#">	
 					авторизированы?
 				</a>
 			</div>
@@ -104,6 +97,11 @@
 	private DateOnly _dateBirth;
 	private String? _psswd;
 	private String? _checkPsswd;
+
+	public void Validation(string text)
+	{
+		var getBool = Regex.Match(text,"");
+	}
 
 	private void Reg_Click()
 	{

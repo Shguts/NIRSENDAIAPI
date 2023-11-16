@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace nirsendai.Models;
+namespace Models;
 
 public partial class NirsendaiContext : DbContext
 {
@@ -35,7 +35,7 @@ public partial class NirsendaiContext : DbContext
     {
         modelBuilder.Entity<Ball>(entity =>
         {
-            entity.HasKey(e => new { e.Login, e.IdCriterie, e.IdZayv });
+            entity.HasKey(e => new { e.Login, e.IdCriterie, e.IdZayv }).HasName("PK_balls_1");
 
             entity.ToTable("balls");
 
@@ -111,6 +111,9 @@ public partial class NirsendaiContext : DbContext
             entity.Property(e => e.Login)
                 .HasMaxLength(50)
                 .HasColumnName("login");
+            entity.Property(e => e.CategoryMo)
+                .HasMaxLength(50)
+                .HasColumnName("categoryMO");
             entity.Property(e => e.DateBirth)
                 .HasColumnType("date")
                 .HasColumnName("date_birth");
@@ -123,6 +126,9 @@ public partial class NirsendaiContext : DbContext
             entity.Property(e => e.Passwd)
                 .HasMaxLength(50)
                 .HasColumnName("passwd");
+            entity.Property(e => e.Region)
+                .HasMaxLength(250)
+                .HasColumnName("region");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.SecondName)
                 .HasMaxLength(50)
@@ -136,16 +142,12 @@ public partial class NirsendaiContext : DbContext
 
         modelBuilder.Entity<Zayavl>(entity =>
         {
-            entity.HasKey(e => new { e.IdZayv, e.IdFile });
+            entity.HasKey(e => new { e.IdZayv, e.IdFile }).HasName("PK_zayavl_1");
 
             entity.ToTable("zayavl");
 
             entity.Property(e => e.IdZayv).HasColumnName("id_zayv");
             entity.Property(e => e.IdFile).HasColumnName("id_file");
-            entity.Property(e => e.IdZayv)
-                .ValueGeneratedNever()
-                .HasColumnName("id_zayv");
-            entity.Property(e => e.File).HasColumnName("file");
             entity.Property(e => e.Login)
                 .HasMaxLength(50)
                 .HasColumnName("login");

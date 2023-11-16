@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace nirsendai.Models;
+namespace Models;
 
 public partial class FileUser
 {

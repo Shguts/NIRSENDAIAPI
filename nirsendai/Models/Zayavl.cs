@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace nirsendai.Models;
+namespace Models;
 
 public partial class Zayavl
 {
@@ -14,8 +14,4 @@ public partial class Zayavl
     public virtual FileUser IdFileNavigation { get; set; } = null!;
 
     public virtual User LoginNavigation { get; set; } = null!;
-    public byte[]? File { get; set; }
-
-    public virtual ICollection<Ball> Balls { get; set; } = new List<Ball>();
-
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace nirsendai.Models;
+namespace Models;
 
 public partial class User
 {
@@ -18,6 +18,10 @@ public partial class User
     public DateTime? DateBirth { get; set; }
 
     public int RoleId { get; set; }
+
+    public string? Region { get; set; }
+
+    public string? CategoryMo { get; set; }
 
     public virtual ICollection<Ball> Balls { get; set; } = new List<Ball>();
 

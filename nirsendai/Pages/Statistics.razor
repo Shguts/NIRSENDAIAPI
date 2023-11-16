@@ -1,0 +1,239 @@
+﻿@page "/stats"
+@using System.IO;
+@using Microsoft.AspNetCore.Components.Web
+@using DocumentFormat.OpenXml.Packaging;
+@using DocumentFormat.OpenXml.Wordprocessing;
+@using System.Diagnostics;
+@using Newtonsoft.Json;
+@inject NavigationManager NavigationManager
+<PageTitle>Stats</PageTitle>
+
+<head>
+    <link rel="stylesheet" href="../Shared/MainLayout.razor.css" />
+</head>
+
+@if (ListStats == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>
+            Поиск по логину
+            <input type="text" value="@GetStringSearch" @onchange="OnActionSearch" />
+            Поиск по регионам
+            <input type="button" @onclick="UploadDoc" value="Сформировать отчет">
+    </p>
+    <p>
+        <select @bind="parentSelect" @bind:after="OnActionSearchFilter">
+                <option value="">-- Выберите регион --</option>
+                @foreach (var i in data.SelectMany(district => district.Items).Select(item => item.Name).ToList())
+                {
+                    <option>@i</option>
+                }
+            </select>
+        <select @bind="childSelect" @bind:after="OnActionSearchFilter">
+            <option value="">-- Выберите населенный пункт --</option>
+            @foreach (var i in data.SelectMany(district => district.Items).Where(x => x.Name == parentSelect).SelectMany(item => item.Items).ToList())
+            {
+                <option value="@i">@i</option>
+            }
+        </select>
+            Поиск по населению
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Номер заявки</th>
+                <th>Блок 1(основной)</th>
+                <th>Блок 2(дополнительный)</th>
+                <th>Итоговый балл</th>
+                <th>Регион</th>
+                <th>Населенный пункт</th>
+                <th>Рейтинг</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < ListStats.Count; i++)
+            {
+                <tr>
+                        <td>@ListStats[i]._idzv</td>
+                        <td>@ListStats[i].Zk</td>
+                        <td>@ListStats[i].Ik</td>
+                        <td>@ListStats[i].Sk</td>
+                        <td>@ListStats[i].Region</td>
+                        <td>@ListStats[i].MO</td>
+                        <td>@Rankeds[i]</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    public string childSelect;
+    public string parentSelect;
+    public class Stats
+    {
+        public string? _idzv;
+
+        public float? Zk;
+
+        public float? Ik;
+
+        public float? Sk;
+
+        public string? Region;
+
+        public string? MO;
+
+        public Stats(string? _idzv, float? Zk, float? Ik, float? Sk, string? Region, string? MO)
+        {
+            this._idzv = _idzv;
+            this.Zk = Zk;
+            this.Ik = Ik;
+            this.Sk = Sk;
+            this.Region = Region;
+            this.MO = MO;
+        }
+    }
+    public List<Stats> ListStats = new List<Stats>();
+    public List<int> Rankeds = new List<int>();
+    public string? GetStringSearch;
+
+    private void requestSearch()
+    {
+        using (var db = new Models.NirsendaiContext())
+        {
+            Rankeds = (from balls2 in db.Balls group balls2 by balls2.IdZayv into g1 select g1.Sum(b => b.IdCriterie != 3 ? b.Mark : 0)).ToList().Select((x, i) => new { Rank = i + 1 }).Select(x => x.Rank).ToList();
+            var query = (from balls in db.Balls
+                         join criteries in db.Criteries on balls.IdCriterie equals criteries.IdCriterie
+                         group balls by balls.IdZayv into g
+                         select new Stats
+                         (
+                             (from zayv in db.Zayavls where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select zayv.Login).FirstOrDefault(),
+                             g.Sum(b => b.IdCriterie != 3 ? b.Mark : 0),
+                             g.Sum(b => b.IdCriterie == 3 ? b.Mark : 0),
+                             g.Sum(b => b.IdCriterie != 3 ? b.Mark : 0),
+                             (from zayv in db.Zayavls join us in db.Users on zayv.Login equals us.Login where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select us.Region).FirstOrDefault(),
+                             (from zayv in db.Zayavls join us in db.Users on zayv.Login equals us.Login where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select us.CategoryMo).FirstOrDefault()
+                         )).ToList();
+
+            ListStats = query.OrderByDescending(x => x.Sk).ToList();
+        }
+    }
+    private void UploadDoc()
+    {
+        using (var db = new Models.NirsendaiContext())
+        {
+
+            var getTop3 = ListStats.OrderByDescending(x=>x.Sk).Take(3).ToList();
+            var top1 = db.Users.Select(x=>x).Where(x=>x.Login==getTop3[0]._idzv).FirstOrDefault();
+            var top2 = db.Users.Select(x => x).Where(x => x.Login == getTop3[1]._idzv).FirstOrDefault();
+            var top3 = db.Users.Select(x => x).Where(x => x.Login == getTop3[2]._idzv).FirstOrDefault();
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "OtchetShablon.docx");
+            var helper = new UploadFileForUser.WordHelper(fullPath);
+            var items = new Dictionary<String, String>
+                {
+                    { "<countMunEduct>", data.SelectMany(district => district.Items).SelectMany(item => item.Items).ToList().Count().ToString()},
+                    { "<countSubRF>",data.SelectMany(district => district.Items).Select(x=>x.Items).Count().ToString() },
+                    { "<top1>", "1 место"+"  "+top1.Name+"   "+top1.LastName+"   "+top1.SecondName+"   "+getTop3[0].Sk.ToString()+"балла "},
+                    { "<top2>",$"2 место"+"  "+top2.Name+"   "+top2.LastName+"   "+top2.SecondName+"   "+getTop3[1].Sk.ToString()+"баллов"},
+                    { "<top3>", $"3 место"+"  "+top3.Name+"   "+top3.LastName+"   "+top3.SecondName+"   "+getTop3[2].Sk.ToString()+"баллов"}
+                };
+            helper.UploadShablon(items);
+            Thread thread = new Thread(() =>
+            {
+                Process.Start(@"C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE", "\"" + helper.NewFileName + "\"");
+            });
+            thread.Start();
+        }
+    }
+    List<SouthFederalDistrict> data;
+    public class Item
+    {   
+        public string Name { get; set; }
+        public List<string> Items { get; set; }
+    }
+    public class SouthFederalDistrict
+    {
+        public List<Item> Items { get; set; }
+    }
+    protected override void OnInitialized()
+    {
+        string json = File.ReadAllText(@"C:\Users\ugluu\Downloads\russia_subjects-and-municipals-master\rf_fo_subjects_municipals.json");
+        data = JsonConvert.DeserializeObject<List<SouthFederalDistrict>>(json);
+        requestSearch();
+    }
+    async Task OnActionSearchFilter()
+    {
+        using (var db = new Models.NirsendaiContext())
+        {
+            ListStats = (from balls in db.Balls
+                         join criteries in db.Criteries on balls.IdCriterie equals criteries.IdCriterie
+                         group balls by balls.IdZayv into g
+                         select new Stats
+                         (
+                             (from zayv in db.Zayavls where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select zayv.Login).FirstOrDefault(),
+                             g.Sum(b => b.IdCriterie != 3 ? b.Mark : 0),
+                             g.Sum(b => b.IdCriterie == 3 ? b.Mark : 0),
+                             g.Sum(b => b.IdCriterie != 3 ? b.Mark : 0),
+                             (from zayv in db.Zayavls join us in db.Users on zayv.Login equals us.Login where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select us.Region).FirstOrDefault(),
+                             (from zayv in db.Zayavls join us in db.Users on zayv.Login equals us.Login where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select us.CategoryMo).FirstOrDefault()
+                         )).ToList().Where(x => x.Region == parentSelect).OrderByDescending(x=>x.Sk).ToList();
+            Rankeds = (from balls2 in db.Balls
+                       group balls2 by balls2.IdZayv into g1
+                       select new
+                       {
+                           Login = (from zayv in db.Zayavls where g1.Select(x => x.IdZayv).Contains(zayv.IdZayv) select zayv.Login).FirstOrDefault(),
+                           TotalMark = g1.Sum(b => b.IdCriterie != 3 ? b.Mark : 0),
+                           Region = (from zayv in db.Zayavls join us in db.Users on zayv.Login equals us.Login where g1.Select(x => x.IdZayv).Contains(zayv.IdZayv) select us.Region).FirstOrDefault(),
+                           MO = (from zayv in db.Zayavls join us in db.Users on zayv.Login equals us.Login where g1.Select(x => x.IdZayv).Contains(zayv.IdZayv) select us.CategoryMo).FirstOrDefault()
+                       })
+                  .ToList()
+                  .Where(x => x.Region == parentSelect)
+                  .Where(x => (string.IsNullOrEmpty(childSelect)) ? x.Region == parentSelect : x.MO == childSelect)
+                  .Select((x, i) => new { Rank = i + 1, Region = x.Region, MO = x.MO })
+                  .Select(x => x.Rank)
+                  .ToList();
+            if (!string.IsNullOrEmpty(childSelect))
+            {
+                ListStats = ListStats.Where(x => x.MO == childSelect).ToList();
+            }
+        }
+    }
+    public void OnActionSearch(ChangeEventArgs e)
+    {
+        using (var db = new Models.NirsendaiContext())
+        {
+            if (e.Value.ToString() != "" && e.Value.ToString() != null)
+            {
+                Rankeds = (from balls2 in db.Balls
+                           group balls2 by balls2.IdZayv into g1
+                           select new
+                           {
+                               Login = (from zayv in db.Zayavls where g1.Select(x => x.IdZayv).Contains(zayv.IdZayv) select zayv.Login).FirstOrDefault(),
+                               TotalMark = g1.Sum(b => b.IdCriterie != 3 ? b.Mark : 0)
+                           })
+                               .ToList()
+                               .Select((x, i) => new { Rank = i + 1, Login = x.Login })
+                               .Where(x => x.Login == e.Value.ToString())
+                               .Select(x => x.Rank)
+                               .ToList();
+                var query = (from balls in db.Balls
+                             join criteries in db.Criteries on balls.IdCriterie equals criteries.IdCriterie
+                             group balls by balls.IdZayv into g
+                             select new Stats
+                             (
+                                 (from zayv in db.Zayavls where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select zayv.Login).FirstOrDefault(),
+                                 g.Sum(b => b.IdCriterie != 3 ? b.Mark : 0),
+                                 g.Sum(b => b.IdCriterie == 3 ? b.Mark : 0),
+                                 g.Sum(b => b.IdCriterie != 3 ? b.Mark : 0),
+                                 (from zayv in db.Zayavls join us in db.Users on zayv.Login equals us.Login where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select us.Region).FirstOrDefault(),
+                                 (from zayv in db.Zayavls join us in db.Users on zayv.Login equals us.Login where g.Select(x => x.IdZayv).Contains(zayv.IdZayv) select us.CategoryMo).FirstOrDefault()
+                             )).ToList().Where(x => x._idzv == e.Value.ToString()).ToList();
+                ListStats = query;
+            }
+            else requestSearch();
+        }
+    }
+}

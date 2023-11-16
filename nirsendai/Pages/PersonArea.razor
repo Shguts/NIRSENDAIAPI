@@ -46,7 +46,7 @@
                 Дата рождения
             </span>
             <div class="wrap-input100">
-                <input class="input100regr" type="date" id="date" name="date" />
+                <input class="input100regr" type="date" @bind="dataBirth" id="date" name="date" />
                 <span class="focus-input100"></span>
             </div>
             <div class="text-center p-t-136">
@@ -71,6 +71,7 @@ else
     private string _genLogin;
     private Models.NirsendaiContext dbo = new Models.NirsendaiContext();
     private string lastName;
+    private DateTime? dataBirth;
     private string firstName;
     private string secondName;
     protected override void OnInitialized()
@@ -90,6 +91,7 @@ else
             firstName = user.Name;
             lastName = user.LastName;
             secondName = user.SecondName;
+            dataBirth = user.DateBirth;
         }
     }
     public void Save()
@@ -100,6 +102,7 @@ else
             user.Name = firstName;
             user.SecondName = secondName;
             user.LastName = lastName;
+            user.DateBirth = dataBirth;
             db.SaveChanges();
         }
     }

@@ -3,6 +3,7 @@
 @using Microsoft.Office.Interop.Word;
 @using Word = Microsoft.Office.Interop.Word;
 @using System.Text;
+@using Newtonsoft.Json;
 @using System.IO;
 @using System.Drawing;
 @using System;
@@ -41,6 +42,32 @@
             <div class="container-login100" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
                 <div class="modal-content" style="background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
                     <h1>Заявка</h1>
+                        <p>
+                            введите регион
+                            <input type="text" />
+                            выберите количество населения в регионе
+                            <select @bind="parentSelect">
+                                <option value="">-- Выберите регион --</option>
+                                @foreach (var i in data.SelectMany(district => district.Items).Select(item => item.Name).ToList())
+                                {
+                                     <option>@i</option>
+                                }
+                            </select>
+                            <select @bind="childSelect">
+                                <option value="">-- Выберите населенный пункт --</option>
+                                @foreach (var i in data.SelectMany(district => district.Items).Where(x=>x.Name==parentSelect).SelectMany(item => item.Items).ToList())
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                            <select @bind="klvoNas">
+                                <option value="">Население 1</option>
+                                <option value="">Население 2</option>
+                                <option value="">Население 3</option>
+                                <option value="">Население 4</option>
+                            </select>
+
+                        </p>
                         <table name="table1" class="table">
                             <tbody>
                                 <tr>
@@ -137,142 +164,146 @@
 </div>
 
 @code {
-        public string _genLogin;
-        public string ORG;
-        public string NAMESUB;
-        public string NAMEMUN;
-        public string FIOGLAV;
-        public string NAMGLAV;
-        public string OFFGLAV;
-        public string PLSGLAV;
-        public string FIODOLGLAV;
-        public string DOLSHN;
-        public string PHONE;
-        public string EMAIL;
-        public string KOLDOLGLAV;
-        public ILogger Logger;
-        private List<IBrowserFile> loadedFiles = new();
-        private long maxFileSize = 1024 * 15;
-        private int maxAllowedFiles = 5;
-        private bool isLoading;
+    // Метод для получения списка дочерних опций в зависимости от выбранной родительской опции
+    public string klvoNas;
+    public string childSelect;
+    public string parentSelect;
+    public string _genLogin;
+    public string ORG;
+    public string NAMESUB;
+    public string NAMEMUN;
+    public string FIOGLAV;
+    public string NAMGLAV;
+    public string OFFGLAV;
+    public string PLSGLAV;
+    public string FIODOLGLAV;
+    public string DOLSHN;
+    public string PHONE;
+    public string EMAIL;
+    public string KOLDOLGLAV;
+    public ILogger Logger;
+    private List<IBrowserFile> loadedFiles = new();
+    private long maxFileSize = 1024 * 15;
+    private int maxAllowedFiles = 5;
+    private bool isLoading;
 
 
-        private void LoadFiles(InputFileChangeEventArgs e)
+    private void LoadFiles(InputFileChangeEventArgs e  )
+    {
+        try
         {
-            try
-            {
-                isLoading = true;
-                loadedFiles.Clear();
+            isLoading = true;
+            loadedFiles.Clear();
 
-                foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
-                {
-                    try
-                    {
-                        loadedFiles.Add(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError("File: {FileName} Error: {Error}",
-                            file.Name, ex.Message);
-                    }
-                }
-
-                isLoading = false;
-            } catch
+            foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
             {
-
-            }
-        }
-        class WordHelper
-        {
-            public string NewFileName;
-            private FileInfo _fileInfo;
-            public WordHelper(string filename)
-            {
-                if (File.Exists(filename))
-                {
-                    _fileInfo = new FileInfo(filename);
-                }
-                else
-                {
-                    throw new ArgumentException("File not Found");
-                }
-
-            }
-            internal bool UploadShablon(Dictionary<string, string> items)
-            {
-                Word.Application app = null;
                 try
                 {
-                    app = new Word.Application();
-                    Object file = _fileInfo.FullName;
-
-                    Object missing = Type.Missing;
-                    var doc = app.Documents.Open(file);
-                    foreach (var item in items)
-                    {
-                        Word.Find find = app.Selection.Find;
-                        find.Text = item.Key;
-                        find.Replacement.Text = item.Value;
-                        Object wrap = Word.WdFindWrap.wdFindContinue;
-                        Object replace = Word.WdReplace.wdReplaceAll;
-                        find.Execute(FindText: Type.Missing,
-                        MatchCase: false,
-                        MatchWholeWord: false,
-                        MatchWildcards: false,
-                        MatchSoundsLike: missing,
-                        MatchAllWordForms: false,
-                        Forward: true,
-                        Wrap: wrap,
-                        Format: false,
-                        ReplaceWith: missing, Replace: replace
-                    );
-                    }
-                    string bookmark2 = "testcheckbox";
-                    Bookmark test = doc.Bookmarks[bookmark2];
-                    Word.Range range = test.Range;
-                    var tend = range.ContentControls;
-                    foreach (ContentControl cc in tend)
-                    {
-                        if (cc.Type == WdContentControlType.wdContentControlCheckBox)
-                        {
-                            cc.Checked = true;
-                        }
-                    }
-                    NewFileName = Path.Combine(_fileInfo.DirectoryName, DateTime.Now.ToString("yyyyMMdd HHmmss") + _fileInfo.Name);
-                    app.ActiveDocument.SaveAs2(NewFileName);
-                    Object newfileName = Path.Combine(_fileInfo.DirectoryName, DateTime.Now.ToString("yyyyMMdd HHmmss") + _fileInfo.Name);
-                    app.ActiveDocument.SaveAs2(newfileName);
-                    app.ActiveDocument.Close();
-                    app.Quit();
-                    return true;
+                    loadedFiles.Add(file);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
-                    return false;
+                    Logger.LogError("File: {FileName} Error: {Error}",
+                        file.Name, ex.Message);
                 }
-                finally
+            }
+
+            isLoading = false;
+        } catch
+        {
+
+        }
+    }
+    public class WordHelper
+    {
+        public string NewFileName;
+        public FileInfo _fileInfo;
+        public WordHelper(string filename)
+        {
+            if (File.Exists(filename))
+            {
+                _fileInfo = new FileInfo(filename);
+            }
+            else
+            {
+                throw new ArgumentException("File not Found");
+            }
+
+        }
+        internal bool UploadShablon(Dictionary<string, string> items)
+        {
+            Word.Application app = null;
+            try
+            {
+                app = new Word.Application();
+                Object file = _fileInfo.FullName;
+
+                Object missing = Type.Missing;
+                var doc = app.Documents.Open(file);
+                foreach (var item in items)
                 {
-                    if (app != null)
+                    Word.Find find = app.Selection.Find;
+                    find.Text = item.Key;
+                    find.Replacement.Text = item.Value;
+                    Object wrap = Word.WdFindWrap.wdFindContinue;
+                    Object replace = Word.WdReplace.wdReplaceAll;
+                    find.Execute(FindText: Type.Missing,
+                    MatchCase: false,
+                    MatchWholeWord: false,
+                    MatchWildcards: false,
+                    MatchSoundsLike: missing,
+                    MatchAllWordForms: false,
+                    Forward: true,
+                    Wrap: wrap,
+                    Format: false,
+                    ReplaceWith: missing, Replace: replace
+                );
+                }
+                /*string bookmark2 = "testcheckbox";
+                Bookmark test = doc.Bookmarks[bookmark2];
+                Word.Range range = test.Range;
+                var tend = range.ContentControls;
+                foreach (ContentControl cc in tend)
                     {
-                        app.Quit();
-                    }
+                    if (cc.Type == WdContentControlType.wdContentControlCheckBox)
+                        {
+                        cc.Checked = true;
+                }
+                }*/
+                NewFileName = Path.Combine(_fileInfo.DirectoryName, DateTime.Now.ToString("yyyyMMdd HHmmss") + _fileInfo.Name);
+                app.ActiveDocument.SaveAs2(NewFileName);
+                Object newfileName = Path.Combine(_fileInfo.DirectoryName, DateTime.Now.ToString("yyyyMMdd HHmmss") + _fileInfo.Name);
+                app.ActiveDocument.SaveAs2(newfileName);
+                app.ActiveDocument.Close();
+                app.Quit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (app != null)
+                {
+                    app.Quit();
                 }
             }
         }
-        Boolean selectedRequest;
-        private void ShowModal()
-        {
-            selectedRequest = false;
-        }
+    }
+    Boolean selectedRequest;
+    private void ShowModal()
+    {
+        selectedRequest = false;
+    }
 
-        private void UploadShablon()
-        {
-            var relativePath = @"C:\Users\ugluu\source\repos\nirsendai\nirsendai\Pages\UploadFilesShablons\shablon.docx";
-            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
-            var helper = new WordHelper(fullPath);
-            var items = new Dictionary<String, String>
+    private void UploadShablon()
+    {
+        var relativePath = @"C:\Users\ugluu\source\repos\nirsendai\nirsendai\Pages\UploadFilesShablons\shablon.docx";
+        var fullPath = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
+        var helper = new WordHelper(fullPath);
+        var items = new Dictionary<String, String>
             {
                 { "<ORG>",ORG },
                 { "<NAMESUB>",NAMESUB},
@@ -287,54 +318,71 @@
                 { "<PHONE>",PHONE },
                 { "<EMAIL>",EMAIL }
             };
-            helper.UploadShablon(items);
-            Thread thread = new Thread(() =>
-            {
-                Process.Start(@"C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE", "\"" + helper.NewFileName + "\"");
-            });
-            thread.Start();
-        }
-        protected override void OnInitialized()
+        helper.UploadShablon(items);
+        Thread thread = new Thread(() =>
         {
-            selectedRequest = false;
-            var uri = new Uri(NavigationManager.Uri);
-            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-            if (query.TryGetValue("_genLogin", out var GenLogin))
-            {
-                _genLogin = GenLogin;
-            }
-        }
-        async private void UploadAll()
+            Process.Start(@"C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE", "\"" + helper.NewFileName + "\"");
+        });
+        thread.Start();
+    }
+    List<SouthFederalDistrict> data;
+    public class Item
+    {
+        public string Name { get; set; }
+        public List<string> Items { get; set; }
+    }
+    public class SouthFederalDistrict
+    {
+        public List<Item> Items { get; set; }
+    }
+    protected override void OnInitialized() 
+    {
+        selectedRequest = false;
+        var uri = new Uri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("_genLogin", out var GenLogin))
         {
-            try
+            _genLogin = GenLogin;
+        }
+        string json = File.ReadAllText(@"C:\Users\ugluu\Downloads\russia_subjects-and-municipals-master\rf_fo_subjects_municipals.json");
+        data = JsonConvert.DeserializeObject<List<SouthFederalDistrict>>(json);
+    }
+    async private void UploadAll()
+    {
+            using (Models.NirsendaiContext db = new Models.NirsendaiContext())
             {
-                using (Models.NirsendaiContext db = new Models.NirsendaiContext())
+                Models.Zayavl zv = new Models.Zayavl();
+                for (int i = 0; i < loadedFiles.Count; i++)
                 {
-                    for (int i = 0;i<loadedFiles.Count;i++)
-                    {
-                        Models.FileUser file = new Models.FileUser();
-                        file.Login = db.Users.Where(x => x.Login == _genLogin).FirstOrDefault()?.Login;
-                        var t = db.FileUsers.Select(x => x).ToList();
-                        file.IdFile = db.FileUsers.Select(x => x).ToList().Count() == 0 ? 1 : db.FileUsers.Select(x => x.IdFile).Max() + 1;
-                        IBrowserFile fFile = loadedFiles[i];
-                        using var stream = fFile.OpenReadStream();
-                        using var memoryStream = new MemoryStream();
-                        await stream.CopyToAsync(memoryStream);
-                        file.FileData = memoryStream.ToArray();
-                        file.FileName = loadedFiles[i].Name;
-                        db.FileUsers.Add(file);
-                        db.SaveChanges();
-                    }
+                    Models.FileUser file = new Models.FileUser();
+                    file.Login = db.Users.Where(x => x.Login == _genLogin).FirstOrDefault()?.Login;
+                    var t = db.FileUsers.Select(x => x).ToList();
+                    file.IdFile = db.FileUsers.Select(x => x).ToList().Count() == 0 ? 1 : db.FileUsers.Select(x => x.IdFile).Max() + 1;
+                    IBrowserFile fFile = loadedFiles[i];
+                    using var stream = fFile.OpenReadStream(); 
+                    using var memoryStream = new MemoryStream();
+                    await stream.CopyToAsync(memoryStream);
+                    file.FileData = memoryStream.ToArray();
+                    file.FileName = loadedFiles[i].Name;
+                    var user = db.Users.Where(x => x.Login == _genLogin).FirstOrDefault();
+                    user.Region = parentSelect;
+                    user.CategoryMo = childSelect;
+                    db.FileUsers.Add(file);
+                    db.SaveChanges();
+                }
+                foreach (var i1 in db.FileUsers.Where(x => x.Login == db.Users.Where(x => x.Login == _genLogin).FirstOrDefault().Login).Select(x => x.IdFile).ToList())
+                {
+                    zv.IdZayv = db.Zayavls.Select(x => x).ToList().Count() == 0 ? 1 : db.Zayavls.Select(x => x.IdZayv).Max() + 1;
+                    zv.IdFile = i1;
+                    zv.Login = db.Users.Where(x => x.Login == _genLogin).FirstOrDefault().Login;
+                    db.Zayavls.Add(zv);
+                    db.SaveChanges();
                 }
             }
-            catch (Exception ex)
-            {
-
-            }
-            CloseModal();
-        }
-        private void CloseModal()
-        {
-            selectedRequest = true;
-        }
+        CloseModal();
+    }
+    private void CloseModal()
+    {
+        selectedRequest = true;
+    }
  }

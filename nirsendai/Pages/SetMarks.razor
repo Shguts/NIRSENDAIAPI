@@ -2,13 +2,17 @@
 @using System.IO;
 @using DocumentFormat.OpenXml.Packaging;
 @using DocumentFormat.OpenXml.Wordprocessing;
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Logging
+@inject IWebHostEnvironment Environment
+@inject NavigationManager NavigationManager
 <PageTitle>Marks</PageTitle>
 
 <head>
     <link rel="stylesheet" href="../Shared/MainLayout.razor.css" />
 </head>
 <h1>Участники</h1>
-<button class="btn btn-primary">Статистика</button>
+<button class="btn btn-primary" @onclick="()=>Stats()">Статистика</button>
 <p>This component demonstrates fetching data from a service.</p>
 
 @if (requests_list == null)
@@ -53,6 +57,11 @@ else
             <h2>Оценка заявки @selectedRequest.id_zayv</h2>
             <p>Таблица заполненная участником.</p>
             <div class="table-container">
+            <p>
+                <label>
+                    <InputFile OnChange="@LoadFileAsync" multiple />
+                </label>
+            </p>
             <table name="table1" class="table">
                 <thead>
                     <tr>
@@ -117,6 +126,56 @@ else
                         <td>Смертность в ДТП, чел.</td>
                         <td>@tableElements[10]</td>
                     </tr>
+                    <tr>
+                        <td>12</td>
+                            <td>Число погибших людей при авариях и происшествиях, чел.</td>
+                        <td>@tableElements[11]</td>
+                    </tr>
+                    <tr>
+                        <td>13</td>
+                            <td>Число погибших людей в чрезвычайных ситуациях, чел.</td>
+                        <td>@tableElements[12]</td>
+                    </tr>
+                    <tr>
+                        <td>14</td>
+                            <td>Число погибших людей в результате пожаров, чел.</td>
+                        <td>@tableElements[13]</td>
+                    </tr>
+                    <tr>
+                        <td>15</td>
+                            <td>Число погибших людей в происшествиях на водных объектах, чел.</td>
+                        <td>@tableElements[14]</td>
+                    </tr>
+                    <tr>
+                        <td>16</td>
+                            <td>Число людей, пострадавших в чрезвычайных ситуациях, чел.</td>
+                        <td>@tableElements[15]</td>
+                    </tr>
+                    <tr>
+                        <td>17</td>
+                            <td>Число людей, травмированных в результате пожаров, чел.</td>
+                        <td>@tableElements[16]</td>
+                    </tr>
+                    <tr>
+                        <td>18</td>
+                            <td>Количество ЧС природного характера, в которых погибло 10 и более человек</td>
+                        <td>@tableElements[17]</td>
+                    </tr>
+                    <tr>
+                        <td>19</td>
+                            <td>Количество ЧС техногенного характера, в которых погибло 10 и более человек</td>
+                        <td>@tableElements[18]</td>
+                    </tr>
+                    <tr>
+                        <td>20</td>
+                            <td>Количество природных пожаров, в которых погибло 10 и более человек</td>
+                        <td>@tableElements[19]</td>
+                    </tr>
+                    <tr>
+                        <td>21</td>
+                            <td>Количество техногенных пожаров, в которых погибло 10 и более человек</td>
+                        <td>@tableElements[20]</td>
+                    </tr>
                 </tbody>
             </table>
             </div>
@@ -141,16 +200,16 @@ else
                         <td>
                             <table>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                    <td><span>0-25</span><input @bind="Un1"/></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                    <td><span>0-25</span><input @bind="Un2" /></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                    <td><span>0-25</span><input @bind="Un3" /></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                    <td><span>0-25</span><input @bind="Un4" /></td>
                                 </tr>
                             </table>
                         </td>
@@ -164,6 +223,9 @@ else
                                 </tr>
                                 <tr>
                                     <td><span>•	Воздействие практики на снижение количества пострадавших и погибших в ЧС</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span>•	Имиджевый эффект от реализации Практики</span></td>
                                 </tr>
                             </table>
                         </td>
@@ -181,16 +243,16 @@ else
                         <td>
                             <table>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                        <td><span>0-25</span><input @bind="Sn1" /></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                        <td><span>0-25</span><input @bind="Sn2" /></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                        <td><span>0-25</span><input @bind="Sn3" /></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                        <td><span>0-25</span><input @bind="Sn4" /></td>
                                 </tr>
                             </table>
                         </td>
@@ -224,16 +286,16 @@ else
                         <td>
                             <table>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                    <td><span>0-25</span><input @bind="Rn1" /></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                    <td><span>0-25</span><input @bind="Rn2" /></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                    <td><span>0-25</span><input @bind="Rn3" /></td>
                                 </tr>
                                 <tr>
-                                    <td><span>0-25</span><input /></td>
+                                    <td><span>0-25</span><input @bind="Rn4" /></td>
                                 </tr>
                             </table>
                         </td>
@@ -270,27 +332,6 @@ else
 {
     <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
         <div style="background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Номер файла</th>
-                        <th>Логин</th>
-                        <th>Файл</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var i in detectedRequest)
-                    {
-                        <tr>
-                            <td>@i.IdFile</td>
-                            <td>@i.Login</td>
-                            <td>
-                                @i.FileName
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
             <table class="table">
                 <thead>
                     <tr>
@@ -391,12 +432,87 @@ else
     List<Zayavka> requests_list;
     Zayavka selectedRequest;
     List<Files> detectedRequest;
+    public ILogger Logger;
     public List<double> tableElements = new List<double>();
+    private List<IBrowserFile> loadedFiles = new List<IBrowserFile>();
+    private long maxFileSize = 1024 * 15;   
+    private int maxAllowedFiles = 1;
+    private bool isLoading;
 
+    private async Task LoadFileAsync(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            isLoading = true;
+            MemoryStream ms = new MemoryStream();
+            Stream stream1 = e.File.OpenReadStream(long.MaxValue);
 
+            foreach (var file in e.GetMultipleFiles())
+            {
+                try
+                {
+                    loadedFiles.Add(file);
+                    var trustedFileNameForFileStorage = Path.GetFileName(file.ContentType);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError("File: {FileName} Error: {Error}",
+                        file.Name, ex.Message);
+                }
+            }
+            isLoading = false;
+
+            var memoryStream = new MemoryStream();
+            await stream1.CopyToAsync(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            using (WordprocessingDocument doc = WordprocessingDocument.Open(memoryStream, false))
+            {
+                tableElements.Clear();
+                // Получаем таблицу по индексу (нумерация начинается с 0)
+                Table table = doc.MainDocumentPart.Document.Body.Elements<Table>().ElementAt(6);
+
+                // Если таблица не найдена, выводим сообщение об ошибке
+                if (table == null)
+                {
+                    Console.WriteLine("Таблица не найдена в документе.");
+                    return;
+                }
+                // Получаем строки таблицы
+                IEnumerable<TableRow> rows = table.Elements<TableRow>();
+
+                // Проходим по каждой строке таблицы
+                foreach (TableRow row in rows)
+                {
+                    // Получаем ячейки строки
+                    IEnumerable<TableCell> cells = row.Elements<TableCell>();
+
+                    TableCell cell = cells.ElementAt(2);
+
+                    // Получаем текст в ячейке
+                    string text = cell.InnerText;
+                    if (int.TryParse(text, out var result))
+                    {
+                        tableElements.Add(Convert.ToDouble(text));
+                    }
+                    // Выводим текст в консоль
+                    Console.WriteLine(text);
+                }
+                tableElements.RemoveAt(0);
+            }
+        }
+        catch
+        {
+
+        }
+    }
 
     protected override void OnInitialized()
     {
+        for (var i=0;i<21;i++)
+        {
+            tableElements.Add(0);
+        }
         using (var db = new Models.NirsendaiContext())
         {
             try
@@ -406,51 +522,23 @@ else
                                       join z in db.Zayavls on fu.IdFile equals z.IdFile
                                       select new Zayavka(
                                           z.IdZayv,
-                                          u.Login,
+                                          z.Login,
                                           u.Name,
                                           u.LastName,
                                           u.SecondName
                                       )).ToList();
-                requests_list = requests_list1.Distinct().ToList();
+                requests_list = requests_list1.ToList();
             }
             catch (Exception e)
             {
 
             }
         }
-        using (WordprocessingDocument doc = WordprocessingDocument.Open(@"D:\shg\20231005_160446shablon.docx", false))
+        var uri = new Uri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("_genLogin", out var GenLogin))
         {
-            // Получаем таблицу по индексу (нумерация начинается с 0)
-            Table table = doc.MainDocumentPart.Document.Body.Elements<Table>().ElementAt(6);
-
-            // Если таблица не найдена, выводим сообщение об ошибке
-            if (table == null)
-            {
-                Console.WriteLine("Таблица не найдена в документе.");
-                return;
-            }
-
-            // Получаем строки таблицы
-            IEnumerable<TableRow> rows = table.Elements<TableRow>();
-
-            // Проходим по каждой строке таблицы
-            foreach (TableRow row in rows)
-            {
-                // Получаем ячейки строки
-                IEnumerable<TableCell> cells = row.Elements<TableCell>();
-
-                TableCell cell = cells.ElementAt(2);
-
-                // Получаем текст в ячейке
-                string text = cell.InnerText;
-                if (int.TryParse(text,out var result))
-                {
-                    tableElements.Add(Convert.ToDouble(text));
-                }
-                // Выводим текст в консоль
-                Console.WriteLine(text);
-            }
-            tableElements.RemoveAt(0);
+            _genLogin = GenLogin;
         }
     }
     private void ShowModal(Zayavka request)
@@ -459,25 +547,32 @@ else
     }
     private void Calculated(Zayavka request)
     {
-        float Gk = (((float)(tableElements[11] / tableElements[10]) * 100) + ((float)(tableElements[12] / tableElements[10]) * 100) + ((float)(tableElements[13] / tableElements[10]) * 100) + ((float)(tableElements[14] / tableElements[10]) * 100) + ((float)(tableElements[15] / tableElements[10]) * 100)) / 5;
-        float Vk = ((float)(tableElements[3] + tableElements[4] + tableElements[5] + tableElements[9]) / 4);
-        float lk = ((100 - Gk) + (100 - Vk)) / 2;
-        var Un = Un1 + Un2 + Un3 + Un4;
-        var Sn = Sn1 + Sn2 + Sn3 + Sn4;
-        var Rn = Rn1 + Rn2 + Rn3 + Rn4;
-        var listCriteries = new List<float> { lk, Un, Sn, Rn };
-        using (var db = new Models.NirsendaiContext())
+        try
         {
+            float Gk = (((float)(tableElements[11] / tableElements[10]) * 100) + ((float)(tableElements[12] / tableElements[10]) * 100) + ((float)(tableElements[13] / tableElements[10]) * 100) + ((float)(tableElements[14] / tableElements[10]) * 100) + ((float)(tableElements[15] / tableElements[10]) * 100)) / 5;
+            float Vk = ((float)(tableElements[3] + tableElements[4] + tableElements[5] + tableElements[9]) / 4);
+            float lk = ((100 - Gk) + (100 - Vk)) / 2;
+            var Un = Un1 + Un2 + Un3 + Un4;
+            var Sn = Sn1 + Sn2 + Sn3 + Sn4;
+            var Rn = Rn1 + Rn2 + Rn3 + Rn4;
+            var listCriteries = new List<float> { Un, Sn, Rn, lk };
+            using (var db = new Models.NirsendaiContext())
+            {
 
-                for (var i = 1; i <= 4; i++) {
+                for (var i = 0; i <= 3; i++)
+                {
                     var newBall = new Models.Ball();
-                    newBall.IdZayv = 1;
-                    newBall.IdCriterie = 1;
-                    newBall.Login = "shg";
-                    newBall.Mark = 1;
+                    newBall.IdZayv = request.id_zayv;
+                    newBall.IdCriterie = i;
+                    newBall.Login = _genLogin;
+                    newBall.Mark = listCriteries[i];
                     db.Balls.Add(newBall);
                     db.SaveChanges();
-                }        
+                }
+            }
+        } catch (Exception e)
+        {
+            
         }
     }
     private void ShowFiles(Zayavka request)
@@ -506,5 +601,9 @@ else
                 fs.Write(i.FileData, 0, i.FileData.Length);
             }
         }
+    }
+    public void Stats()
+    {
+        NavigationManager.NavigateTo("/stats");
     }
 }
